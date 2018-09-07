@@ -4,6 +4,8 @@ import {Vector2} from './math/Vector2';
 import {GameObject} from './engine/GameObject';
 import {RectangleMesh} from './graphics/Mesh';
 import * as chroma from 'chroma-js';
+import {RandomSpeedObject} from './components/RandomSpeedObject';
+import {Velocity} from './components/Velocity';
 
 let engine: Engine;
 let width: number;
@@ -23,7 +25,7 @@ try {
   });
 
   document.getElementById('start').addEventListener('click', () => {
-    engine.start();
+    engine.resume();
     log('running...');
   });
 
@@ -61,7 +63,7 @@ function log(text: string) {
 
 function create() {
   const center: Vector2 = new Vector2(width / 2, height / 2);
-  const radius = 1;
+  const radius = 10;
   const squareWidth: number = 30;
   const squareHeight: number = 30;
 
@@ -75,7 +77,8 @@ function create() {
               center.y + (squareHeight) * y)
       );
       square.mesh = new RectangleMesh(chroma.random().css());
-      console.log(square);
+      square.addComponent(new Velocity());
+      square.addComponent(new RandomSpeedObject(500));
       engine.addGameObject(square);
     }
   }

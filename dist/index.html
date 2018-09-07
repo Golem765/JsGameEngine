@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+    <title>Test</title>
+    <style>
+        html, body {height: 100%;width: 100%;margin: 0;padding: 0;}
+        canvas {margin: 20px 20px 40px 20px;border: 5px solid gold;}
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            line-height: 40px;
+            padding-left: 20px;
+        }
+        .controls button {margin-right: 15px;color: white;}
+        .start {background-color: green;}
+        .restart {background-color: gray;}
+        .stop {background-color: red;}
+        .info {display: inline-block;}
+    </style>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+</head>
+<body>
+<canvas id="canvas">
+
+</canvas>
+<div class="controls">
+    <button class="start" id="start"><i class="fa fa-play-circle"></i></button>
+    <button class="restart" id="restart"><i class="fa fa-redo"></i></button>
+    <button class="stop" id="stop"><i class="fa fa-stop-circle"></i></button>
+    <div class="info" id="info"></div>
+</div>
+<script type="text/javascript" src="9b21b52c204a7786f0d1.bundle.js" defer></script></body>
+</html>

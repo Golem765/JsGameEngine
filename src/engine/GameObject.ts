@@ -73,6 +73,10 @@ export class GameObject {
     return this._size.clone();
   }
 
+  get offset(): Vector2[] {
+    return [this._engine.offsetX, this._engine.offsetY];
+  }
+
   set mesh(value: Mesh) {
     if (this._mesh) {
       this._mesh.gameObject = null;

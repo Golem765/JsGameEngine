@@ -36,7 +36,7 @@ export class Engine {
   private update() {
     if (this._running) {
       const newTime = new Date().getTime();
-      const deltaTime = this._time - newTime;
+      const deltaTime = (newTime - this._time) / 1000;
       this._time = newTime;
 
       this._context.clearRect(0, 0, this._width, this._height);
@@ -46,6 +46,13 @@ export class Engine {
       }
       requestAnimationFrame(this.update.bind(this));
     }
+  }
+
+  public resume() {
+    this._running = true;
+    this._time = new Date().getTime();
+
+    this.update();
   }
 
   public stop() {
