@@ -8,7 +8,7 @@ export class GameObject {
   private _size: Vector2;
   private _position: Vector2;
   private _components: Map<string, GameComponent> = new Map();
-  private _mesh: Mesh;
+  private _mesh: Mesh[] = [];
 
   constructor(size: Vector2, position: Vector2) {
     this._size = size;
@@ -16,20 +16,20 @@ export class GameObject {
   }
 
   public addComponent(component: GameComponent) {
-    const oldComponent = this._components.get(component.getName());
+    const oldComponent = this._components.get(component.constructor.name);
     if (oldComponent) {
       console.log('Overriding component', oldComponent);
       oldComponent.gameObject = null;
     }
-    this._components.set(component.getName(), component);
+    this._components.set(component.constructor.name, component);
     component.gameObject = this;
   }
 
   public removeComponent(component: GameComponent) {
-    const oldComponent = this._components.get(component.getName());
+    const oldComponent = this._components.get(component.constructor.name);
     if (oldComponent) {
       oldComponent.gameObject = null;
-      this._components.delete(component.getName());
+      this._components.delete(component.constructor.name);
     }
   }
 
@@ -53,7 +53,9 @@ export class GameObject {
     if (!this.visible || !this._mesh) {
       return;
     }
-    this._mesh.render(context, new Vector2(this._engine.offsetX.x, this._engine.offsetY.x));
+    for (const m of this._mesh) {
+      m.render(context, new Vector2(this._engine.offsetX.x, this._engine.offsetY.x));
+    }
   }
 
   public onDestroy() {
@@ -77,13 +79,30 @@ export class GameObject {
     return [this._engine.offsetX, this._engine.offsetY];
   }
 
-  set mesh(value: Mesh) {
-    if (this._mesh) {
-      this._mesh.gameObject = null;
-      this._mesh = null;
-    }
-    this._mesh = value;
+  public addMesh(value: Mesh) {
     value.gameObject = this;
+
+    const idx = this._mesh.findIndex(m => m.constructor.name === value.constructor.name);
+    if (idx !== -1) {
+      this._mesh[idx].gameObject = null;
+      this._mesh[idx] = value;
+    } else {
+      this._mesh.push(value);
+    }
+    this._mesh.sort((a, b) => a.order - b.order);
+  }
+
+  set mesh(value: Mesh) {
+    this.addMesh(value);
+  }
+
+  public removeMesh(value: Mesh) {
+    const idx = this._mesh.findIndex(m => m.constructor.name === value.constructor.name);
+    if (idx !== -1) {
+      this._mesh[idx].gameObject = null;
+      this._mesh.splice(idx, 1);
+      this._mesh.sort((a, b) => a.order - b.order);
+    }
   }
 
   set size(value: Vector2) {

@@ -1,6 +1,6 @@
 import { GameComponent } from '../engine/GameComponent';
 import { Vector2 } from '../math/Vector2';
-import { Velocity, VELOCITY_NAME } from './Velocity';
+import { Velocity } from './Velocity';
 
 export class RandomSpeedObject extends GameComponent {
 
@@ -13,7 +13,7 @@ export class RandomSpeedObject extends GameComponent {
   }
 
   start() {
-    this._velocityComponent = this.gameObject.getComponent<Velocity>(VELOCITY_NAME);
+    this._velocityComponent = this.gameObject.getComponent<Velocity>(Velocity.name);
     this._velocityComponent.velocity = new Vector2(this._baseSpeed * (Math.random() * 2 - 1), this._baseSpeed * (Math.random() * 2 - 1));
   }
 
@@ -30,9 +30,5 @@ export class RandomSpeedObject extends GameComponent {
     if (this.gameObject.verticalBound.y > this.gameObject.offset[1].y) {
       this._velocityComponent.velocity = new Vector2(this._velocityComponent.velocity.x, -this._baseSpeed * Math.random());
     }
-  }
-
-  getName() {
-    return 'RandomSpeedObject';
   }
 }

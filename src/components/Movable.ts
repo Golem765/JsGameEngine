@@ -1,7 +1,7 @@
-import { GameComponent } from '../engine/GameComponent';
-import { Input } from '../engine/Input';
-import { Vector2 } from '../math/Vector2';
-import { Velocity, VELOCITY_NAME } from './Velocity';
+import {GameComponent} from '../engine/GameComponent';
+import {Input} from '../engine/Input';
+import {Vector2} from '../math/Vector2';
+import {Velocity} from './Velocity';
 
 export class Movable extends GameComponent {
 
@@ -15,23 +15,19 @@ export class Movable extends GameComponent {
 
   start() {
     super.start();
-    this._velocityComponent = this.gameObject.getComponent(VELOCITY_NAME);
+    this._velocityComponent = this.gameObject.getComponent(Velocity.name);
   }
 
   update(deltaTime: number) {
     super.update(deltaTime);
     this._velocityComponent.velocity = new Vector2(
-      Input.horizontal * this._speed,
-      this._velocityComponent.velocity.y
+        Input.horizontal * this._speed,
+        this._velocityComponent.velocity.y
     );
     this._velocityComponent.velocity = new Vector2(
-      this._velocityComponent.velocity.x,
-      -Input.vertical * this._speed,
+        this._velocityComponent.velocity.x,
+        -Input.vertical * this._speed,
     );
-  }
-
-  getName() {
-    return 'Movable';
   }
 
   get speed(): number {

@@ -2,7 +2,7 @@ import {Engine} from './engine/Engine';
 import {Input} from './engine/Input';
 import {Vector2} from './math/Vector2';
 import {GameObject} from './engine/GameObject';
-import {RectangleMesh} from './graphics/Mesh';
+import {RandomColorMesh, RectangleMesh} from './graphics/Mesh';
 import * as chroma from 'chroma-js';
 import {RandomSpeedObject} from './components/RandomSpeedObject';
 import {Velocity} from './components/Velocity';
@@ -21,6 +21,7 @@ try {
   document.getElementById('restart').addEventListener('click', () => {
     create();
     engine.start();
+    engine.stop();
     log('running...');
   });
 
@@ -76,7 +77,8 @@ function create() {
           new Vector2(center.x + (squareWidth) * x,
               center.y + (squareHeight) * y)
       );
-      square.mesh = new RectangleMesh(chroma.random().css());
+      square.mesh = new RandomColorMesh(chroma.random().css());
+      square.mesh = new RectangleMesh();
       square.addComponent(new Velocity());
       square.addComponent(new RandomSpeedObject(500));
       engine.addGameObject(square);

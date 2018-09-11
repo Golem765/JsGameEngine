@@ -10,8 +10,6 @@ export abstract class GameComponent {
   public update(deltaTime: number) {
   }
 
-  public abstract getName(): string;
-
   get gameObject(): GameObject {
     return this._gameObject;
   }

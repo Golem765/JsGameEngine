@@ -15,10 +15,6 @@ export class Velocity extends GameComponent {
     );
   }
 
-  getName() {
-    return VELOCITY_NAME;
-  }
-
   get velocity(): Vector2 {
     return this._velocity.clone();
   }
@@ -28,5 +24,3 @@ export class Velocity extends GameComponent {
     this._velocity.y = value.y;
   }
 }
-
-export const VELOCITY_NAME = 'Velocity';
