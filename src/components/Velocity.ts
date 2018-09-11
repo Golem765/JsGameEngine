@@ -1,5 +1,5 @@
-import {GameComponent} from '../engine/GameComponent';
-import {Vector2} from '../math/Vector2';
+import {GameComponent} from '../engine';
+import {Vector2} from '../engine/math';
 
 export class Velocity extends GameComponent {
   private _velocity: Vector2 = new Vector2(0, 0);

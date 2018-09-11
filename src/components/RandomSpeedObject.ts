@@ -1,6 +1,6 @@
-import { GameComponent } from '../engine/GameComponent';
-import { Vector2 } from '../math/Vector2';
-import { Velocity } from './Velocity';
+import {GameComponent} from '../engine';
+import {Vector2} from '../engine/math';
+import {Velocity} from './Velocity';
 
 export class RandomSpeedObject extends GameComponent {
 

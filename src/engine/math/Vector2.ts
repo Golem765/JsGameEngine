@@ -17,6 +17,14 @@ export class Vector2 {
     this._y = this._y - vector._y;
   }
 
+  public distance(vector: Vector2): number {
+    return Vector2.distance(this, vector);
+  }
+
+  public magnitude(): number {
+    return Math.sqrt(Math.pow(this._x, 2) + Math.pow(this._y, 2));
+  }
+
   public clone() {
     return new Vector2(this._x, this._y);
   }
@@ -35,5 +43,11 @@ export class Vector2 {
 
   set y(value: number) {
     this._y = value;
+  }
+
+  public static zero = new Vector2(0, 0);
+
+  public static distance(a: Vector2, b: Vector2): number {
+    return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
   }
 }

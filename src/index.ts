@@ -1,27 +1,21 @@
-import {Engine} from './engine/Engine';
-import {Input} from './engine/Input';
-import {Vector2} from './math/Vector2';
-import {GameObject} from './engine/GameObject';
-import {RandomColorMesh, RectangleMesh} from './graphics/Mesh';
-import * as chroma from 'chroma-js';
-import {RandomSpeedObject} from './components/RandomSpeedObject';
+import {Engine, GameObject} from './engine';
+import {Vector2} from './engine/math';
+import {BorderMesh, CircleMesh, ColorMesh, RandomColorMesh, RectangleMesh} from './engine/graphics';
+import {Movable} from './components/Movable';
 import {Velocity} from './components/Velocity';
+import {FloorPool} from './components/floor/FloorPool';
 
 let engine: Engine;
 let width: number;
 let height: number;
 
 try {
-  Input.init();
   engine = init();
-  create();
-  engine.start();
   log('running...');
 
   document.getElementById('restart').addEventListener('click', () => {
-    create();
-    engine.start();
-    engine.stop();
+    engine.clear();
+    engine = init();
     log('running...');
   });
 
@@ -38,8 +32,6 @@ try {
   window.addEventListener('resize', () => {
     engine.stop();
     engine = init();
-    create();
-    engine.start();
   });
 } catch (e) {
   console.error(e);
@@ -47,7 +39,6 @@ try {
 
 function init(): Engine {
   const canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-
   width = window.innerWidth - 60;
   height = window.innerHeight - 80;
 
@@ -55,33 +46,35 @@ function init(): Engine {
   canvas.height = height;
 
   const context = canvas.getContext('2d');
-  return new Engine(context, width, height);
+
+  const engine = new Engine(context, width, height);
+  const center: Vector2 = new Vector2(width / 2, height / 2);
+  const radius = 4;
+  const squareWidth: number = 30;
+  const squareHeight: number = 30;
+
+  const floorItem = new GameObject(new Vector2(squareWidth, squareHeight));
+  floorItem.mesh = new RandomColorMesh();
+  floorItem.mesh = new RectangleMesh();
+  const floor = new FloorPool(radius, center, floorItem);
+  engine.addGameObject(floor);
+
+  const player = new GameObject(
+      new Vector2(squareWidth, squareHeight),
+      new Vector2(center.x, center.y),
+      100
+  );
+
+  player.mesh = new ColorMesh('white');
+  player.mesh = new BorderMesh('black');
+  player.mesh = new CircleMesh();
+  player.addComponent(new Velocity());
+  player.addComponent(new Movable());
+  engine.addGameObject(player);
+  engine.launch();
+  return engine;
 }
 
 function log(text: string) {
   document.getElementById('info').innerText = text;
-}
-
-function create() {
-  const center: Vector2 = new Vector2(width / 2, height / 2);
-  const radius = 10;
-  const squareWidth: number = 30;
-  const squareHeight: number = 30;
-
-  engine.clear();
-  for (let x = -radius; x <= radius; x++) {
-    const yRadius = radius - Math.abs(x);
-    for (let y = -yRadius; y <= yRadius; y++) {
-      const square = new GameObject(
-          new Vector2(squareWidth, squareHeight),
-          new Vector2(center.x + (squareWidth) * x,
-              center.y + (squareHeight) * y)
-      );
-      square.mesh = new RandomColorMesh(chroma.random().css());
-      square.mesh = new RectangleMesh();
-      square.addComponent(new Velocity());
-      square.addComponent(new RandomSpeedObject(500));
-      engine.addGameObject(square);
-    }
-  }
 }

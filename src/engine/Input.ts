@@ -7,7 +7,7 @@ export class Input {
 
   public static init() {
     if (Input.initialized) {
-      throw new Error('Input already initialized');
+      return;
     }
     document.addEventListener('keydown', event => {
       if (event.keyCode === 37) {

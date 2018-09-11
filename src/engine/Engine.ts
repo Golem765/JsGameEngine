@@ -1,5 +1,6 @@
-import {Vector2} from '../math/Vector2';
+import {Vector2} from './math';
 import {GameObject} from './GameObject';
+import {Input} from './Input';
 
 export class Engine {
   private _offsetX: Vector2;
@@ -22,7 +23,9 @@ export class Engine {
     this._offsetY = new Vector2(0, height);
   }
 
-  public start() {
+  public launch() {
+    Input.init();
+
     this._time = new Date().getTime();
     this._running = true;
 
@@ -63,10 +66,12 @@ export class Engine {
     if (!this._gameObjects.find(o => o === go)) {
       this._gameObjects.push(go);
       go.engine = this;
+      go.awake();
       if (this._running) {
         go.start();
       }
     }
+    this._gameObjects.sort(((a, b) => a.z - b.z));
   }
 
   public removeGameObject(go: GameObject) {
@@ -76,6 +81,7 @@ export class Engine {
       go.engine = null;
       this._gameObjects.splice(idx, 1);
     }
+    this._gameObjects.sort(((a, b) => a.z - b.z));
   }
 
   public clear() {

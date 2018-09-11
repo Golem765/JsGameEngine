@@ -1,6 +1,5 @@
-import {GameComponent} from '../engine/GameComponent';
-import {Input} from '../engine/Input';
-import {Vector2} from '../math/Vector2';
+import {GameComponent, Input} from '../engine';
+import {Vector2} from '../engine/math';
 import {Velocity} from './Velocity';
 
 export class Movable extends GameComponent {

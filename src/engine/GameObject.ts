@@ -1,18 +1,23 @@
-import {Vector2} from '../math/Vector2';
+import {Vector2} from './math';
 import {GameComponent} from './GameComponent';
 import {Engine} from './Engine';
-import {Mesh} from '../graphics/Mesh';
+import {Mesh} from './graphics';
 
 export class GameObject {
-  private _engine: Engine;
-  private _size: Vector2;
-  private _position: Vector2;
-  private _components: Map<string, GameComponent> = new Map();
-  private _mesh: Mesh[] = [];
+  protected _engine: Engine;
+  protected _size: Vector2;
+  protected _position: Vector2;
+  protected _components: Map<string, GameComponent> = new Map();
+  protected _mesh: Mesh[] = [];
+  protected _enabled = true;
+  protected _z: number;
 
-  constructor(size: Vector2, position: Vector2) {
+  private _awakened: boolean = false;
+
+  constructor(size: Vector2 = Vector2.zero, position: Vector2 = Vector2.zero, z: number = 0) {
     this._size = size;
     this._position = position;
+    this._z = z;
   }
 
   public addComponent(component: GameComponent) {
@@ -37,6 +42,17 @@ export class GameObject {
     return this._components.get(name) as T;
   }
 
+  public awake() {
+    if (!this._awakened) {
+      this._awakened = true;
+      this.innerAwake();
+    }
+  }
+
+  protected innerAwake() {
+
+  }
+
   public start() {
     this._components.forEach((value) => {
       value.start();
@@ -50,12 +66,27 @@ export class GameObject {
   }
 
   public render(context: CanvasRenderingContext2D) {
-    if (!this.visible || !this._mesh) {
+    if (!this.visible || !this._mesh.length || !this._enabled) {
       return;
     }
     for (const m of this._mesh) {
       m.render(context, new Vector2(this._engine.offsetX.x, this._engine.offsetY.x));
     }
+  }
+
+  /**
+   * Shallow clone, cloned are position, size and meshes, but not GameComponents
+   * TODO full clone
+   */
+  public clone(): GameObject {
+    const clone = new GameObject(this.size.clone(), this.position.clone());
+    clone.engine = this._engine;
+    for (const m of this._mesh) {
+      const cloneMesh = m.clone();
+      cloneMesh.gameObject = this;
+      clone.mesh = cloneMesh;
+    }
+    return clone;
   }
 
   public onDestroy() {
@@ -127,5 +158,21 @@ export class GameObject {
         && this.horizontalBound.y > this._engine.offsetX.x
         && this.verticalBound.x < this._engine.offsetY.y
         && this.verticalBound.y > this._engine.offsetY.x;
+  }
+
+  get enabled(): boolean {
+    return this._enabled;
+  }
+
+  set enabled(value: boolean) {
+    this._enabled = value;
+  }
+
+  get z(): number {
+    return this._z;
+  }
+
+  set z(value: number) {
+    this._z = value;
   }
 }
