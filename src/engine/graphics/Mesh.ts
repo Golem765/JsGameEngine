@@ -85,7 +85,7 @@ export class RandomChangeColorMesh extends ColorMesh {
 export class RectangleMesh extends Mesh {
 
   constructor() {
-    super(1);
+    super(10);
   }
 
   render(context: CanvasRenderingContext2D, offset: Vector2): void {

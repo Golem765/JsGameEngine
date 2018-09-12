@@ -66,7 +66,7 @@ export class Engine {
     if (!this._gameObjects.find(o => o === go)) {
       this._gameObjects.push(go);
       go.engine = this;
-      go.awake();
+      go.callAwake();
       if (this._running) {
         go.start();
       }
@@ -82,6 +82,10 @@ export class Engine {
       this._gameObjects.splice(idx, 1);
     }
     this._gameObjects.sort(((a, b) => a.z - b.z));
+  }
+
+  public findObject<T extends GameObject>(name: string): T {
+    return <T>this._gameObjects.find(o => o.constructor.name === name);
   }
 
   public clear() {

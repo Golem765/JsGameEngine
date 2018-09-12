@@ -42,14 +42,14 @@ export class GameObject {
     return this._components.get(name) as T;
   }
 
-  public awake() {
+  public callAwake() {
     if (!this._awakened) {
       this._awakened = true;
-      this.innerAwake();
+      this.awake();
     }
   }
 
-  protected innerAwake() {
+  protected awake() {
 
   }
 
@@ -128,7 +128,11 @@ export class GameObject {
   }
 
   public removeMesh(value: Mesh) {
-    const idx = this._mesh.findIndex(m => m.constructor.name === value.constructor.name);
+    this.removeMeshByName(value.constructor.name);
+  }
+
+  public removeMeshByName(name: string) {
+    const idx = this._mesh.findIndex(m => m.constructor.name === name);
     if (idx !== -1) {
       this._mesh[idx].gameObject = null;
       this._mesh.splice(idx, 1);

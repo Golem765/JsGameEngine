@@ -69,6 +69,7 @@ With presented Mesh system this is equivalent to adding first a `ColorMesh` and 
 `render(context: CanvasRenderingContext2D, offset: Vector2)` Called each frame by owning `GameObject`.
 
 `context` is canvas Context
+
 `offset` is current offset of the viewport, it is used to draw meshes in relation to current canvas 'virtual' offset.
 
 For better example here is how `RectangleMesh` is implemented:
