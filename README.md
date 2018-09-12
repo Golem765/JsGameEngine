@@ -5,6 +5,46 @@ It consists of two parts:
 1) Game engine built with typescript (all files in the `src/engine` folder)
 2) The game itself
 
+# Quick start
+
+#### 1. Create html with canvas element:
+      
+     <html>
+         <head></head>
+         <body>
+             <canvas id="canvas"></canvas>
+         </body>
+     </html>
+     
+#### 2. Acquire canvas element and init it's width and height:
+       
+     const canvas = document.getElementById('canvas');
+     const width = window.innerWidth;
+     const height = window.innerHeight;
+     
+     canvas.width = width;
+     canvas.height = height;
+
+#### 3. Acquire canvas context and create game engine:
+
+    const context = canvas.getContext('2d');
+      
+    const engine = new Engine(context, width, height);
+      
+#### 4. Create movable player and start engine:
+
+    const player = new Player(
+          new Vector2(20, 20),
+          new Vector2(100, 50),
+    );
+      
+    engine.addGameObject(player);
+    
+    engine.launch();
+    
+#### 5. Enjoy your game and extend it further!
+Full example can be found in the `src/index.ts` file.
+
 # How it works
 It implements a simple [Game Loop](http://gameprogrammingpatterns.com/game-loop.html) and [Update Method](http://gameprogrammingpatterns.com/update-method.html) patterns, as well as [Component](http://gameprogrammingpatterns.com/component.html).
 
@@ -66,7 +106,7 @@ Think of combining meshes as of ordered method call, for example to draw a green
 With presented Mesh system this is equivalent to adding first a `ColorMesh` and then a `RectangleMesh`
 ### Methods
 #### Render
-`render(context: CanvasRenderingContext2D, offset: Vector2)` Called each frame by owning `GameObject`.
+`render(context: CanvasRenderingContext2D, offset: Vector2)` This method will be called each frame if the owner `GameObject` is enabled and visible in the current viewport.
 
 `context` is canvas Context
 
