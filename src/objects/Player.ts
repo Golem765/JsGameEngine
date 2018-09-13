@@ -3,6 +3,7 @@ import {BorderMesh, CircleMesh, ColorMesh} from '../engine/graphics';
 import {Velocity} from '../components/Velocity';
 import {Movable} from '../components/Movable';
 import {Vector2} from '../engine/math';
+import {RandomSpeedObject} from '../components/RandomSpeedObject';
 
 export class Player extends GameObject {
 
@@ -15,6 +16,6 @@ export class Player extends GameObject {
     this.mesh = new BorderMesh('black');
     this.mesh = new CircleMesh();
     this.addComponent(new Velocity());
-    this.addComponent(new Movable());
+    this.addComponent(new RandomSpeedObject(1000));
   }
 }

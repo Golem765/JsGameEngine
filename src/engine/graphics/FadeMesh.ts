@@ -1,19 +1,20 @@
 import {Mesh} from './Mesh';
 import {Vector2} from '../math';
 import * as chroma from 'chroma-js';
+import {GameObject} from '../GameObject';
 
 export class FadeMesh extends Mesh {
 
   private time: number;
   private color: string;
 
-  constructor(private fadeTime: number) {
+  constructor(private fadeTime: number, private completeQueue: GameObject[]) {
     super(2);
     this.time = new Date().getTime();
   }
 
   clone(): Mesh {
-    const clone = new FadeMesh(this.fadeTime);
+    const clone = new FadeMesh(this.fadeTime, this.completeQueue);
     clone.color = this.color;
     return clone;
   }
@@ -29,6 +30,8 @@ export class FadeMesh extends Mesh {
     }
     context.fillStyle = chroma(this.color).alpha(1 - progression).css();
     if (progression === 1) {
+      this.gameObject.enabled = false;
+      this.completeQueue.push(this.gameObject);
       this.gameObject.removeMesh(this);
     }
   }

@@ -9,7 +9,7 @@ export class FloorPool extends GameObject {
   private _diameter: number;
   private _poolSize: number;
   private _itemSize: number;
-  private _fadeSecs: number = 1.5;
+  private _fadeSecs: number = 0.5;
   private _realRadius: number;
 
   private _player: GameObject;
@@ -58,7 +58,7 @@ export class FloorPool extends GameObject {
         }
       }
     }
-    for(let i = 0; i < this._poolSize * this._fadeSecs; i++){
+    for(let i = 0; i < this._poolSize * 50; i++){
       const item = this.prototype.clone();
       this._engine.addGameObject(item);
       item.enabled = false;
@@ -119,9 +119,9 @@ export class FloorPool extends GameObject {
     while (!isNullOrUndefined(idx)) {
       let item = this._freeItems.pop();
       if (!isNullOrUndefined(item)) {
-        item.enabled = true;
         const offset = this.getColRowOffset(idx);
         if (this.getExistenceProbability(offset)) {
+          item.enabled = true;
           item.position = new Vector2(
               this.center.x + (item.size.x) * offset.x,
               this.center.y + (item.size.y) * offset.y
@@ -166,10 +166,6 @@ export class FloorPool extends GameObject {
   }
 
   private fadeItem(item: GameObject) {
-    item.mesh = new FadeMesh(this._fadeSecs);
-    setTimeout(() => {
-      item.enabled = false;
-      this._freeItems.push(item);
-    }, this._fadeSecs * 1000);
+    item.mesh = new FadeMesh(this._fadeSecs, this._freeItems);
   }
 }

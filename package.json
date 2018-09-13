@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --port 9000 --inline --progress --profile --colors --watch --content-base src/ --mode development",
-    "build": "webpack --config webpack.config.js --mode production",
-    "build.prod": "webpack --config webpack.config.js -p",
+    "build": "webpack --config webpack.config.js --mode development",
     "test": "karma start karma.config.js"
   },
   "keywords": [
