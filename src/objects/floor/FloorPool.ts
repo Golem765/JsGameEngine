@@ -2,13 +2,14 @@ import {GameObject} from '../../engine';
 import {Vector2} from '../../engine/math';
 import {Player} from '../Player';
 import {FadeMesh} from '../../engine/graphics/FadeMesh';
+import {isNullOrUndefined} from 'util';
 
 export class FloorPool extends GameObject {
   private _pool: GameObject[] = [];
   private _diameter: number;
   private _poolSize: number;
   private _itemSize: number;
-  private _fadeSecs: number = 1;
+  private _fadeSecs: number = 1.5;
   private _realRadius: number;
 
   private _player: GameObject;
@@ -17,6 +18,8 @@ export class FloorPool extends GameObject {
 
   private _freeItems: GameObject[] = [];
   private _vacantIndices: number[] = [];
+
+  private _maxExp: number;
 
   constructor(private radius: number,
               private center: Vector2,
@@ -30,17 +33,15 @@ export class FloorPool extends GameObject {
     this._pool.length = this._poolSize;
     this._itemSize = prototype.size.x;
     this._realRadius = this.radius * this._itemSize;
+
+    const maxDist = new Vector2(this.radius, this.radius).magnitude();
+    this._maxExp = Math.exp(Math.pow(maxDist, FloorPool.arg_pow));
   }
 
   awake() {
-    const maxDist = new Vector2(this.radius, this.radius).magnitude();
-    const maxExp = Math.exp(Math.pow(maxDist, FloorPool.arg_pow));
     for (let x = -this.radius; x <= this.radius; x++) {
       for (let y = -this.radius; y <= this.radius; y++) {
-        const dist = new Vector2(Math.abs(x), Math.abs(y)).magnitude();
-        const probability = 1 - Math.exp(Math.pow(dist, FloorPool.arg_pow)) / maxExp;
 
-        const random = Math.random();
         const idx = this.getIdx(x, y);
 
         const item = this.prototype.clone();
@@ -49,14 +50,19 @@ export class FloorPool extends GameObject {
             this.center.y + (item.size.y) * y
         );
         this._engine.addGameObject(item);
-        if (random <= probability) {
+        if (this.getExistenceProbability(new Vector2(x, y))) {
           this._pool[idx] = item;
         } else {
           item.enabled = false;
           this._freeItems.push(item);
-          this._vacantIndices.push(idx);
         }
       }
+    }
+    for(let i = 0; i < this._poolSize * this._fadeSecs; i++){
+      const item = this.prototype.clone();
+      this._engine.addGameObject(item);
+      item.enabled = false;
+      this._freeItems.push(item);
     }
   }
 
@@ -72,25 +78,63 @@ export class FloorPool extends GameObject {
   update(deltaTime: number): void {
     const playerPos = this._player.position;
     if (Vector2.distance(this.center, playerPos) > this._itemSize) {
-      const direction = playerPos.subtract(this.center).normalized();
+      const direction = playerPos.subtract(this.center).unitized();
       this.center = this.center.add(direction.multiply(this._itemSize));
-      this.reindex();
+      this.reindex(direction);
     }
+    this.fillGaps();
+
     super.update(deltaTime);
   }
 
-  private reindex() {
+  private reindex(change: Vector2) {
+    this._vacantIndices = [];
+    const newPool: GameObject[] = new Array(this._poolSize);
     for (let i = 0; i < this._poolSize; i++) {
       const item = this._pool[i];
-      if (item && Vector2.distance(item.position, this.center) > this._realRadius) {
-        item.mesh = new FadeMesh(this._fadeSecs);
-        setTimeout(() => {
-          item.enabled = false;
-          this._freeItems.push(item);
-        }, this._fadeSecs * 1000);
-        this._vacantIndices.push(i);
-        this._pool[i] = null;
+      if (!item) continue;
+      const colRow = this.getColRowOffset(i);
+      const newColRow = colRow.subtract(change);
+      const newIdx = this.getIdx(newColRow.x, newColRow.y);
+      if (this.outbound(newColRow)) {
+        this.fadeItem(item);
+      } else {
+        if (this.getExistenceProbability(newColRow)) {
+          newPool[newIdx] = item;
+        } else {
+          this.fadeItem(item);
+        }
       }
+    }
+    for (let i = 0; i < this._poolSize; i++) {
+      if (!newPool[i]) {
+        this._vacantIndices.push(i);
+      }
+    }
+    this._pool = newPool;
+  }
+
+  private fillGaps() {
+    let idx = this._vacantIndices.pop();
+    while (!isNullOrUndefined(idx)) {
+      let item = this._freeItems.pop();
+      if (!isNullOrUndefined(item)) {
+        item.enabled = true;
+        const offset = this.getColRowOffset(idx);
+        if (this.getExistenceProbability(offset)) {
+          item.position = new Vector2(
+              this.center.x + (item.size.x) * offset.x,
+              this.center.y + (item.size.y) * offset.y
+          );
+          this._pool[idx] = item;
+        } else {
+          this._freeItems.push(item);
+        }
+      } else {
+        this._vacantIndices.push(idx);
+        break;
+      }
+      idx = this._vacantIndices.pop();
     }
   }
 
@@ -103,5 +147,29 @@ export class FloorPool extends GameObject {
         Math.floor(idx / this._diameter),
         Math.floor(idx % this._diameter)
     );
+  }
+
+  private getColRowOffset(idx: number): Vector2 {
+    return new Vector2(
+        Math.floor(idx / this._diameter) - this.radius,
+        Math.floor(idx % this._diameter) - this.radius
+    );
+  }
+
+  private outbound(offset: Vector2): boolean {
+    return Math.abs(offset.x) > this.radius || Math.abs(offset.y) > this.radius;
+  }
+
+  private getExistenceProbability(offset: Vector2): boolean {
+    const dist = new Vector2(Math.abs(offset.x), Math.abs(offset.y)).magnitude();
+    return Math.random() <= 1 - Math.exp(Math.pow(dist, FloorPool.arg_pow)) / this._maxExp;
+  }
+
+  private fadeItem(item: GameObject) {
+    item.mesh = new FadeMesh(this._fadeSecs);
+    setTimeout(() => {
+      item.enabled = false;
+      this._freeItems.push(item);
+    }, this._fadeSecs * 1000);
   }
 }
