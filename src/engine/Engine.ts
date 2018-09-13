@@ -6,7 +6,9 @@ export class Engine {
   private _offsetX: Vector2;
   private _offsetY: Vector2;
 
-  private _time: number;
+  private _currentTime: number = 0;
+  private _dt = 1.0 / 60.0;
+
   private _running: boolean;
 
   private readonly _context: CanvasRenderingContext2D;
@@ -26,7 +28,8 @@ export class Engine {
   public launch() {
     Input.init();
 
-    this._time = new Date().getTime();
+    this._currentTime = new Date().getTime();
+
     this._running = true;
 
     for (const go of this._gameObjects) {
@@ -39,21 +42,29 @@ export class Engine {
   private update() {
     if (this._running) {
       const newTime = new Date().getTime();
-      const deltaTime = (newTime - this._time) / 1000;
-      this._time = newTime;
+      let deltaTime = (newTime - this._currentTime) / 1000;
+      this._currentTime = newTime;
 
       this._context.clearRect(0, 0, this._width, this._height);
+
+      while (deltaTime > 0.0) {
+        for (const object of this._gameObjects) {
+          object.update(this._dt);
+        }
+        deltaTime = deltaTime - this._dt;
+      }
+
       for (const object of this._gameObjects) {
-        object.update(deltaTime);
         object.render(this._context);
       }
+
       requestAnimationFrame(this.update.bind(this));
     }
   }
 
   public resume() {
     this._running = true;
-    this._time = new Date().getTime();
+    this._currentTime = new Date().getTime();
 
     this.update();
   }

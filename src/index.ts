@@ -49,7 +49,7 @@ function init(): Engine {
 
   const engine = new Engine(context, width, height);
   const center: Vector2 = new Vector2(width / 2, height / 2);
-  const radius = 6;
+  const radius = 4;
   const squareWidth: number = 30;
   const squareHeight: number = 30;
 

@@ -9,7 +9,7 @@ export class FloorPool extends GameObject {
   private _diameter: number;
   private _poolSize: number;
   private _itemSize: number;
-  private _fadeSecs: number = 0.5;
+  private _fadeSecs: number = 1.0;
   private _realRadius: number;
 
   private _player: GameObject;
@@ -58,7 +58,7 @@ export class FloorPool extends GameObject {
         }
       }
     }
-    for(let i = 0; i < this._poolSize * 50; i++){
+    for(let i = 0; i < this._poolSize * 20; i++){
       const item = this.prototype.clone();
       this._engine.addGameObject(item);
       item.enabled = false;
