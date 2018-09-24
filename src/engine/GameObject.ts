@@ -1,22 +1,30 @@
 import {Vector2} from './math';
 import {GameComponent} from './GameComponent';
 import {Engine} from './Engine';
-import {Mesh} from './graphics';
+import {Sprite} from './graphics';
+import {Transform} from './transform';
+import {Lifecycle} from './Lifecycle';
+import {Viewport} from './Viewport';
 
-export class GameObject {
-  protected _engine: Engine;
-  protected _size: Vector2;
-  protected _position: Vector2;
-  protected _components: Map<string, GameComponent> = new Map();
-  protected _mesh: Mesh[] = [];
+export class GameObject extends Lifecycle {
+  private _engine: Engine;
+
+  protected readonly _transform: Transform;
+  protected _tag: string = 'GO';
+  protected readonly _sprites: Sprite[] = [];
+
+  protected readonly _components: Map<string, GameComponent> = new Map();
   protected _enabled = true;
   protected _z: number;
 
   private _awakened: boolean = false;
 
-  constructor(size: Vector2 = Vector2.zero, position: Vector2 = Vector2.zero, z: number = 0) {
-    this._size = size;
-    this._position = position;
+  constructor(size: Vector2 = Vector2.zero,
+              position: Vector2 = Vector2.zero,
+              rotation: number = 0,
+              z: number = 0) {
+    super();
+    this._transform = new Transform(position, rotation, size);
     this._z = z;
   }
 
@@ -45,123 +53,84 @@ export class GameObject {
   public callAwake() {
     if (!this._awakened) {
       this._awakened = true;
-      this.awake();
+      this.onAwake();
     }
   }
 
-  protected awake() {
-
-  }
-
-  public start() {
+  public onStart() {
     this._components.forEach((value) => {
-      value.start();
+      value.onStart();
     });
   }
 
-  public update(deltaTime: number) {
+  public update() {
     this._components.forEach((value) => {
-      value.update(deltaTime);
+      value.update();
     });
   }
 
-  public render(context: CanvasRenderingContext2D) {
-    if (!this.visible || !this._mesh.length || !this._enabled) {
+  public render(context: CanvasRenderingContext2D, viewport: Viewport, alpha: number) {
+    if (!this._sprites.length || !this._enabled) {
       return;
     }
-    for (const m of this._mesh) {
-      m.render(context, new Vector2(this._engine.offsetX.x, this._engine.offsetY.x));
+    for (const m of this._sprites) {
+      m.render(context, viewport, alpha);
     }
   }
 
-  /**
-   * Shallow clone, cloned are position, size and meshes, but not GameComponents
-   * TODO full clone
-   */
   public clone(): GameObject {
-    const clone = new GameObject(this.size.clone(), this.position.clone());
+    const clone = new GameObject();
     clone.engine = this._engine;
-    for (const m of this._mesh) {
+    for (const m of this._sprites) {
       const cloneMesh = m.clone();
       cloneMesh.gameObject = this;
-      clone.mesh = cloneMesh;
+      clone.sprites = cloneMesh;
     }
     return clone;
   }
 
   public onDestroy() {
-
+    this._components.forEach((value) => {
+      value.onDestroy();
+    });
   }
 
-  get position(): Vector2 {
-    return this._position.clone();
-  }
-
-  set position(value: Vector2) {
-    this._position.x = value.x;
-    this._position.y = value.y;
-  }
-
-  get size(): Vector2 {
-    return this._size.clone();
-  }
-
-  get offset(): Vector2[] {
-    return [this._engine.offsetX, this._engine.offsetY];
-  }
-
-  public addMesh(value: Mesh) {
+  public addSprite(value: Sprite) {
     value.gameObject = this;
 
-    const idx = this._mesh.findIndex(m => m.constructor.name === value.constructor.name);
+    const idx = this._sprites.findIndex(m => m.constructor.name === value.constructor.name);
     if (idx !== -1) {
-      this._mesh[idx].gameObject = null;
-      this._mesh[idx] = value;
+      this._sprites[idx].gameObject = null;
+      this._sprites[idx] = value;
     } else {
-      this._mesh.push(value);
+      this._sprites.push(value);
     }
-    this._mesh.sort((a, b) => a.order - b.order);
+    this._sprites.sort((a, b) => a.order - b.order);
   }
 
-  set mesh(value: Mesh) {
-    this.addMesh(value);
+  set sprites(value: Sprite) {
+    this.addSprite(value);
   }
 
-  public removeMesh(value: Mesh) {
-    this.removeMeshByName(value.constructor.name);
+  public removeSprite(value: Sprite) {
+    this.removeSpriteByName(value.constructor.name);
   }
 
-  public removeMeshByName(name: string) {
-    const idx = this._mesh.findIndex(m => m.constructor.name === name);
+  public removeSpriteByName(name: string) {
+    const idx = this._sprites.findIndex(m => m.constructor.name === name);
     if (idx !== -1) {
-      this._mesh[idx].gameObject = null;
-      this._mesh.splice(idx, 1);
-      this._mesh.sort((a, b) => a.order - b.order);
+      this._sprites[idx].gameObject = null;
+      this._sprites.splice(idx, 1);
+      this._sprites.sort((a, b) => a.order - b.order);
     }
-  }
-
-  set size(value: Vector2) {
-    this._size.x = value.x;
-    this._size.y = value.y;
   }
 
   set engine(value: Engine) {
     this._engine = value;
   }
 
-  get horizontalBound(): Vector2 {
-    return new Vector2(this.position.x - this.size.x / 2, this.position.x + this.size.x / 2);
-  }
-
-  get verticalBound(): Vector2 {
-    return new Vector2(this.position.y - this.size.y / 2, this.position.y + this.size.y / 2);
-  }
-
-  get visible(): boolean {
-    return this.horizontalBound.x < this._engine.offsetX.y
-        && this.horizontalBound.y > this._engine.offsetX.x
-        && this.verticalBound.x < this._engine.offsetY.y
-        && this.verticalBound.y > this._engine.offsetY.x;
+  get engine(): Engine {
+    return this._engine;
   }
 
   get enabled(): boolean {
@@ -178,5 +147,13 @@ export class GameObject {
 
   set z(value: number) {
     this._z = value;
+  }
+
+  get tag(): string {
+    return this._tag;
+  }
+
+  get transform(): Transform {
+    return this._transform;
   }
 }

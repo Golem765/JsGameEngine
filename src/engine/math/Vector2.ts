@@ -33,6 +33,20 @@ export class Vector2 {
     return new Vector2(this._x / magnitude, this._y / magnitude);
   }
 
+  public dot(vector: Vector2) {
+    return this.x * vector.x + this.y * vector.y;
+  }
+
+  public rotate(angle: number, pivot: Vector2) {
+    const x = this.x - pivot.x;
+    const y = this.y - pivot.y;
+
+    return new Vector2(
+        pivot.x + ((x * Math.cos(angle)) - (y * Math.sin(angle))),
+        pivot.y + ((x * Math.sin(angle)) + (y * Math.cos(angle))),
+    );
+  }
+
   public unitized(): Vector2 {
     const absX = Math.abs(this._x);
     const absY = Math.abs(this._y);

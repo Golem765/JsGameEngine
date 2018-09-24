@@ -1,8 +1,7 @@
-import {Engine, GameObject} from './engine';
+import {Engine} from './engine';
 import {Vector2} from './engine/math';
-import {RandomColorMesh, RectangleMesh} from './engine/graphics';
-import {FloorPool} from './objects/floor/FloorPool';
 import {Player} from './objects/Player';
+import {Rectangle} from './objects/misc/Rectangle';
 
 let engine: Engine;
 let width: number;
@@ -49,22 +48,20 @@ function init(): Engine {
 
   const engine = new Engine(context, width, height);
   const center: Vector2 = new Vector2(width / 2, height / 2);
-  const radius = 4;
-  const squareWidth: number = 30;
-  const squareHeight: number = 30;
-
-  const floorItem = new GameObject(new Vector2(squareWidth / 2, squareHeight / 2));
-  floorItem.mesh = new RandomColorMesh();
-  floorItem.mesh = new RectangleMesh();
-  const floor = new FloorPool(radius, center, floorItem);
-  engine.addGameObject(floor);
 
   const player = new Player(
-      new Vector2(squareWidth, squareHeight),
+      new Vector2(30, 50),
       new Vector2(center.x, center.y),
   );
 
   engine.addGameObject(player);
+
+  const rec = new Rectangle(
+      new Vector2(100, 20),
+      new Vector2(center.x, center.y + 60)
+  );
+  engine.addGameObject(rec);
+
   engine.launch();
   return engine;
 }

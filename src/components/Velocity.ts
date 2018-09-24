@@ -1,4 +1,4 @@
-import {GameComponent} from '../engine';
+import {GameComponent, Time} from '../engine';
 import {Vector2} from '../engine/math';
 
 export class Velocity extends GameComponent {
@@ -8,10 +8,10 @@ export class Velocity extends GameComponent {
     this._velocity = new Vector2(this._velocity.x + velocity.x, this._velocity.y + velocity.y);
   }
 
-  update(deltaTime: number) {
-    this.gameObject.position = new Vector2(
-        this.gameObject.position.x + this._velocity.x * deltaTime,
-        this.gameObject.position.y + this._velocity.y * deltaTime
+  update() {
+    this.gameObject.transform.position = new Vector2(
+        this.gameObject.transform.position.x + this._velocity.x * Time.UPDATE_TIME,
+        this.gameObject.transform.position.y + this._velocity.y * Time.UPDATE_TIME
     );
   }
 

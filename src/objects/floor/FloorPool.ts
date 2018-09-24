@@ -1,7 +1,7 @@
 import {GameObject} from '../../engine';
 import {Vector2} from '../../engine/math';
 import {Player} from '../Player';
-import {FadeMesh} from '../../engine/graphics/FadeMesh';
+import {FadeSprite} from '../../engine/graphics/FadeSprite';
 import {isNullOrUndefined} from 'util';
 
 export class FloorPool extends GameObject {
@@ -9,7 +9,7 @@ export class FloorPool extends GameObject {
   private _diameter: number;
   private _poolSize: number;
   private _itemSize: number;
-  private _fadeSecs: number = 1.0;
+  private _fadeSecs: number = 0.5;
   private _realRadius: number;
 
   private _player: GameObject;
@@ -25,31 +25,32 @@ export class FloorPool extends GameObject {
               private center: Vector2,
               private prototype: GameObject) {
     super(
-        new Vector2(radius * prototype.size.x + prototype.size.x, radius * prototype.size.y + prototype.size.y),
+        new Vector2(radius * prototype.transform.size.x + prototype.transform.size.x,
+            radius * prototype.transform.size.y + prototype.transform.size.y),
         center
     );
     this._diameter = this.radius * 2 + 1;
     this._poolSize = Math.ceil(Math.pow(this._diameter, 2));
     this._pool.length = this._poolSize;
-    this._itemSize = prototype.size.x;
+    this._itemSize = prototype.transform.size.x;
     this._realRadius = this.radius * this._itemSize;
 
     const maxDist = new Vector2(this.radius, this.radius).magnitude();
     this._maxExp = Math.exp(Math.pow(maxDist, FloorPool.arg_pow));
   }
 
-  awake() {
+  onAwake() {
     for (let x = -this.radius; x <= this.radius; x++) {
       for (let y = -this.radius; y <= this.radius; y++) {
 
         const idx = this.getIdx(x, y);
 
         const item = this.prototype.clone();
-        item.position = new Vector2(
-            this.center.x + (item.size.x) * x,
-            this.center.y + (item.size.y) * y
+        item.transform.position = new Vector2(
+            this.center.x + (item.transform.size.x) * x,
+            this.center.y + (item.transform.size.y) * y
         );
-        this._engine.addGameObject(item);
+        this.engine.addGameObject(item);
         if (this.getExistenceProbability(new Vector2(x, y))) {
           this._pool[idx] = item;
         } else {
@@ -58,33 +59,32 @@ export class FloorPool extends GameObject {
         }
       }
     }
-    for(let i = 0; i < this._poolSize * 20; i++){
+    for (let i = 0; i < this._poolSize * 20; i++) {
       const item = this.prototype.clone();
-      this._engine.addGameObject(item);
+      this.engine.addGameObject(item);
       item.enabled = false;
       this._freeItems.push(item);
     }
   }
 
-  start(): void {
-    this._player = this._engine.findObject(Player.name);
+  onStart(): void {
+    this._player = this.engine.findObject(Player.name);
     if (!this._player) {
       console.trace('Could not find player');
       throw 'No player in FloorPool';
     }
-    super.start();
+    super.onStart();
   }
 
-  update(deltaTime: number): void {
-    const playerPos = this._player.position;
+  update(): void {
+    const playerPos = this._player.transform.position;
     if (Vector2.distance(this.center, playerPos) > this._itemSize) {
-      const direction = playerPos.subtract(this.center).unitized();
+      const direction = playerPos.subtract(this.center).unitized().multiply(this.radius);
       this.center = this.center.add(direction.multiply(this._itemSize));
       this.reindex(direction);
     }
     this.fillGaps();
-
-    super.update(deltaTime);
+    super.update();
   }
 
   private reindex(change: Vector2) {
@@ -122,9 +122,9 @@ export class FloorPool extends GameObject {
         const offset = this.getColRowOffset(idx);
         if (this.getExistenceProbability(offset)) {
           item.enabled = true;
-          item.position = new Vector2(
-              this.center.x + (item.size.x) * offset.x,
-              this.center.y + (item.size.y) * offset.y
+          item.transform.position = new Vector2(
+              this.center.x + (item.transform.size.x) * offset.x,
+              this.center.y + (item.transform.size.y) * offset.y
           );
           this._pool[idx] = item;
         } else {
@@ -166,6 +166,9 @@ export class FloorPool extends GameObject {
   }
 
   private fadeItem(item: GameObject) {
-    item.mesh = new FadeMesh(this._fadeSecs, this._freeItems);
+    item.sprites = new FadeSprite(this._fadeSecs, () => {
+      item.enabled = false;
+      this._freeItems.push(item);
+    });
   }
 }

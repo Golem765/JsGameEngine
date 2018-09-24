@@ -1,14 +1,8 @@
 import {GameObject} from './GameObject';
+import {Lifecycle} from './Lifecycle';
 
-export abstract class GameComponent {
+export abstract class GameComponent extends Lifecycle {
   private _gameObject: GameObject;
-
-  public start() {
-
-  }
-
-  public update(deltaTime: number) {
-  }
 
   get gameObject(): GameObject {
     return this._gameObject;

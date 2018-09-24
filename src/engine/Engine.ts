@@ -1,39 +1,39 @@
-import {Vector2} from './math';
 import {GameObject} from './GameObject';
 import {Input} from './Input';
+import {PhysicsEngine} from './physics/PhysicsEngine';
+import {Time} from './Time';
+import {Viewport} from './Viewport';
 
 export class Engine {
-  private _offsetX: Vector2;
-  private _offsetY: Vector2;
-
-  private _currentTime: number = 0;
-  private _dt = 1.0 / 60.0;
-
   private _running: boolean;
 
   private readonly _context: CanvasRenderingContext2D;
+
   private _width: number;
   private _height: number;
   private _gameObjects: GameObject[] = [];
+
+  private _physics: PhysicsEngine;
+  private _viewport: Viewport;
 
   constructor(context: CanvasRenderingContext2D, width: number, height: number) {
     this._width = width;
     this._height = height;
     this._context = context;
 
-    this._offsetX = new Vector2(0, width);
-    this._offsetY = new Vector2(0, height);
+    this._physics = new PhysicsEngine();
+    this._viewport = new Viewport(width, height);
   }
 
   public launch() {
     Input.init();
 
-    this._currentTime = new Date().getTime();
+    Time.time = new Date().getTime();
 
     this._running = true;
 
     for (const go of this._gameObjects) {
-      go.start();
+      go.onStart();
     }
 
     this.update();
@@ -42,20 +42,26 @@ export class Engine {
   private update() {
     if (this._running) {
       const newTime = new Date().getTime();
-      let deltaTime = (newTime - this._currentTime) / 1000;
-      this._currentTime = newTime;
+      let deltaTime = (newTime - Time.time) / 1000;
+
+      Time.time = newTime;
+      Time.renderLag += deltaTime;
+
+      while (Time.renderLag >= Time.UPDATE_TIME) {
+        for (const object of this._gameObjects) {
+          object.update();
+        }
+        this._physics.update();
+        Time.renderLag = Time.renderLag - Time.UPDATE_TIME;
+      }
 
       this._context.clearRect(0, 0, this._width, this._height);
 
-      while (deltaTime > 0.0) {
-        for (const object of this._gameObjects) {
-          object.update(this._dt);
-        }
-        deltaTime = deltaTime - this._dt;
-      }
-
+      this._context.save();
+      const alpha = Time.renderLag / Time.UPDATE_TIME;
       for (const object of this._gameObjects) {
-        object.render(this._context);
+        object.render(this._context, this._viewport, alpha);
+        this._context.restore();
       }
 
       requestAnimationFrame(this.update.bind(this));
@@ -64,7 +70,7 @@ export class Engine {
 
   public resume() {
     this._running = true;
-    this._currentTime = new Date().getTime();
+    Time.time = new Date().getTime();
 
     this.update();
   }
@@ -79,7 +85,7 @@ export class Engine {
       go.engine = this;
       go.callAwake();
       if (this._running) {
-        go.start();
+        go.onStart();
       }
     }
     this._gameObjects.sort(((a, b) => a.z - b.z));
@@ -99,18 +105,19 @@ export class Engine {
     return <T>this._gameObjects.find(o => o.constructor.name === name);
   }
 
+  public findObjects<T extends GameObject>(name: string): T[] {
+    return <T[]>this._gameObjects.filter(o => o.constructor.name === name);
+  }
+
   public clear() {
     for (const go of this._gameObjects) {
       go.engine = null;
     }
     this._gameObjects = [];
+    this._physics = new PhysicsEngine();
   }
 
-  get offsetX(): Vector2 {
-    return this._offsetX.clone();
-  }
-
-  get offsetY(): Vector2 {
-    return this._offsetY.clone();
+  get physics(): PhysicsEngine {
+    return this._physics;
   }
 }

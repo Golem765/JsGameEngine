@@ -1,1 +1,2 @@
-export * from './Mesh';
+export * from './Sprite';
+export * from './FadeSprite';
