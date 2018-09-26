@@ -52,74 +52,90 @@ As a rendering field it uses canvas.
 
 Inputs are read from keyboard.
 
+Physics uses rigid bodies.
+
 ## GameObject
 ### Lifecycle
 #### Awake
-`awake()` Guaranteed to be called once and only once on each `GameObject` after addition to game engine.
+`onAwake()` Guaranteed to be called once and only once on each `GameObject` before `onStart` and after addition to game engine.
+
+Internally calls `onAwake` for every attached `GameComponent`.
 
 #### Start
-`start()` Called once on each `GameObject` after `Engine` launch or immediately after addition if `Engine` is already running. 
+`onStart()` Called once on each `GameObject` after `Engine` launch or immediately after addition if `Engine` is already running. 
 
-Internally calls `start` for every attached `GameComponent`.
+Internally calls `onStart` for every attached `GameComponent`.
 
 *(For some strange reasons it sometimes get's called twice, working on solution)*
 
 #### Update
-`update(deltaTime: number)` Called each frame for every `GameObject` (even disabled).
+`update()` Called each frame for every `GameObject` (even disabled).
 
 Internally calls `update` for every attached `GameComponent`.
 
-`deltaTime` is time in seconds that passed since last frame (update call)
+#### Destroy
 
-#### Render
-`render(context: CanvasRenderingContext2D)` Called each frame for every GameObject (even disabled).
-
-Internally calls `render` for each attached `Mesh`.
-
-`context` is Canvas context which is acquired as `canvas.getContext('2d')` and passed to engine on construction. Generally one should not bother on how context is acquired as one should never call render himself, this method is called by engine only.
+`onDestroy()` Called before object removal from the game engine.
 
 ## GameComponent
 Represents a piece of behavior of the `GameObject`
 ### Lifecycle
+#### Awake
+`onAwake()` Guaranteed to be called once and only once on each `GameComponent` by the owner `GameObject` before `onStart` and after addition to game engine.
+
+This method is where one should init some internal properties that don't rely on other components.
+
 #### Start
-`start()` Called once on each `GameComponent` by the owning `GameObject` after `Engine` launch or immediately after `GameObject` addition to `Engine` if `Engine` is already running. 
+`onStart()` Called once on each `GameComponent` by the owning `GameObject` after `Engine` launch or immediately after `GameObject` addition to `Engine` if `Engine` is already running. 
 
-This method is where one should init connections between components, as all components should be already attached prior to `start` call. Though it is possible to attach components afterwards, it is not an advised behavior.
+This method is where one should init connections between components, as all components should be already attached prior to `onStart` call. Though it is possible to attach components afterwards, it is not an advised behavior.
 
-It is responsibility of developer to make sure that all required `GameComponents` are attached to `GameObject` prior to `start`.
+It is responsibility of developer to make sure that all required `GameComponents` are attached to `GameObject` prior to `onStart`.
 
 ####Update
-`update(deltaTime: number)` Called each frame for every `GameComponent`.
+`update()` Called each frame for every `GameComponent`.
 
-`deltaTime` is time in seconds that passed since last frame (update call)
+#### Destroy
+`onDestroy()` Called before owner `GameObject` removal from the game engine.
 
-## Mesh
+*It will not be called when `GameComponent` is being removed from `GameObject`*
+
+## Time
+
+All time is managed using static class `Time`.
+#### Fields
+1) `time` contains time passed since engine launch.
+2) `renderLag` at the beginning of the frame contains time since last frame and then decremented until it is lower than `UPDATE_TIME`. It is designed 
+for internal engine's use and generally should not be accessed by user.
+3) `UPDATE_TIME` time between update calls. It is always a constant and correctness of such behavior is maintained by the engine. This is the value you would like to use in order to set absolute speeds and etc.
+ 
+## Sprite
 Represents a drawable object and generally is just a bunch of instruction for canvas on how to draw element.
 
-Meshes are attached to `GameObject` and are ordered, so that Meshes with lower order got executed first.
+Sprites are attached to `GameObject` and are ordered, so that Sprite with lower order got executed first.
 
-Think of combining meshes as of ordered method call, for example to draw a green rectangle one would do: 
+Think of combining sprites as of ordered method call, for example to draw a green rectangle one would do: 
      
      context.fillStyle = 'green';
      context.fillRect(x, y, sizeX, sizeY);
      
-With presented Mesh system this is equivalent to adding first a `ColorMesh` and then a `RectangleMesh`
+With presented Sprite system this is equivalent to adding first a `ColorSprite` and then a `RectangleSprite`
 ### Methods
 #### Render
-`render(context: CanvasRenderingContext2D, offset: Vector2)` This method will be called each frame if the owner `GameObject` is enabled and visible in the current viewport.
+`render(context: CanvasRenderingContext2D, viewport: Viewport, alpha: number)` This method will be called each frame if the owner `GameObject` is enabled and visible in the current viewport.
 
 `context` is canvas Context
 
-`offset` is current offset of the viewport, it is used to draw meshes in relation to current canvas 'virtual' offset.
+`viewport` is current viewport of the canvas, it is used to draw meshes in relation to current canvas' virtual offset.
 
-For better example here is how `RectangleMesh` is implemented:
+`alpha` part of the frame that was not executed by the game loop in order to synchronize update's timing. It is bound to [0,1) where 0 means that there is no time left for the current frame.
+Should be used for graphical extrapolation.
 
-     context.fillRect(
-             this._gameObject.position.x - offset.x - this._gameObject.size.x / 2,
-             this._gameObject.position.y - offset.y - this._gameObject.size.y / 2,
-             this._gameObject.size.x,
-             this._gameObject.size.y
-     );
-It shifts drawing based on offset so that objects will move in relation to viewport without actual move.
+### PolygonSprite
+TODO
 
-Offset is calculated by the owning `GameObject` and passed to all `Meshes` on `render` call.
+## Rigidbody
+
+Represents an object that is affected by physical forces. 
+
+Currently supports rotation and gravity.

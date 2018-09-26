@@ -1,7 +1,6 @@
 import {Engine} from './engine';
 import {Vector2} from './engine/math';
 import {Player} from './objects/Player';
-import {Rectangle} from './objects/misc/Rectangle';
 
 let engine: Engine;
 let width: number;
@@ -55,12 +54,6 @@ function init(): Engine {
   );
 
   engine.addGameObject(player);
-
-  const rec = new Rectangle(
-      new Vector2(100, 20),
-      new Vector2(center.x, center.y + 60)
-  );
-  engine.addGameObject(rec);
 
   engine.launch();
   return engine;

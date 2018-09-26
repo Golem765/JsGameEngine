@@ -11,7 +11,7 @@ export abstract class Sprite {
   }
 
   render(context: CanvasRenderingContext2D, viewport: Viewport, alpha: number): void {
-  };
+  }
 
   get gameObject(): GameObject {
     return this._gameObject;
@@ -64,29 +64,24 @@ export class PolygonSprite extends Sprite {
   }
 
   render(context: CanvasRenderingContext2D, viewport: Viewport, alpha: number): void {
-    for (let i = 0; i < this._vertices.length; i++) {
-      this._vertices[i] = this._vertices[i].rotate(this.gameObject.transform.rotation, this.gameObject.transform.position);
+    const frameVertices = this._vertices.map(v => v.clone());
+    for (let i = 0; i < frameVertices.length; i++) {
+      frameVertices[i] = this._vertices[i].rotate(this.gameObject.transform.rotation, this.gameObject.transform.position);
     }
-    /*if (this._previousVertices.length) {
-      for (let i = 0; i < this._vertices.length; i++) {
-        const change = this._vertices[i].subtract(this._previousVertices[i]).multiply(alpha);
-        this._vertices[i] = this._vertices[i].add(change);
-      }
-    }*/
     context.beginPath();
 
-    context.moveTo(this._vertices[0].x - viewport.x, this._vertices[0].y - viewport.y);
-    for (let i = 1; i < this._vertices.length; i++) {
-      context.lineTo(this._vertices[i].x - viewport.x, this._vertices[i].y - viewport.y);
+    context.moveTo(frameVertices[0].x - viewport.x, frameVertices[0].y - viewport.y);
+    for (let i = 1; i < frameVertices.length; i++) {
+      context.lineTo(frameVertices[i].x - viewport.x, frameVertices[i].y - viewport.y);
     }
-    context.lineTo(this._vertices[0].x - viewport.x, this._vertices[0].y - viewport.y);
+    context.lineTo(frameVertices[0].x - viewport.x, frameVertices[0].y - viewport.y);
 
     context.fill();
     context.stroke();
 
     context.closePath();
 
-    this._previousVertices = this._vertices.map(v => v.clone());
+    this._previousVertices = frameVertices.map(v => v.clone());
   }
 }
 

@@ -54,6 +54,9 @@ export class GameObject extends Lifecycle {
     if (!this._awakened) {
       this._awakened = true;
       this.onAwake();
+      this._components.forEach((value) => {
+        value.onAwake();
+      });
     }
   }
 
